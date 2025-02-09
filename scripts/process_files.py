@@ -69,7 +69,7 @@ def filter_json(input_file, output_file):
 # Example usage
 
 def main():
-    process_all("raw_data/dump", "raw_data/subreddits23_unzipped","raw_data/reddit_jsons", "raw_data/filtered_data")
+    process_all("../raw_data/sample_1/raw", "../raw_data/sample_1/unzipped","../raw_data/sample_1/all_json", "../raw_data/sample_1/filtered_data")
 
 if __name__ == "__main__":
     main()
