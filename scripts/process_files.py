@@ -50,14 +50,23 @@ def text_to_json(input_file, output_file):
 
     print(f"Converted '{input_file}' to '{output_file}'")
 
+#determine which posts to keep for analysis
+def keep_post(post):
+    deleted_removed = post["author"] == "[deleted]" or post["selftext"] == "[removed]"
+    score = post["score"] > 5
+    text = len(post["selftext"]) > 5
+    year = True #todo - filter for timeframe
+    return not deleted_removed and score and text and year
+
 def filter_json(input_file, output_file):
     with open(input_file, "r", encoding="utf-8") as infile:
         data = json.load(infile)  # Load JSON data
 
     # If it's a list of objects, filter each one
     if isinstance(data, list):
-        #todo: filter out empty posts, deleted posts
-        filtered_data = [{k: v for k, v in item.items() if k in fields_to_keep} for item in data]
+        #filter deteled posts and posts w score < 5
+        filtered_data = [item for item in data if keep_post(item)]
+        filtered_data = [{k: v for k, v in item.items() if k in fields_to_keep} for item in filtered_data]
     else:  # If it's a single object
         filtered_data = {k: v for k, v in data.items() if k in fields_to_keep}
 
