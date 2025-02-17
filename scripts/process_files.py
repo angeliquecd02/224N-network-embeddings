@@ -40,7 +40,6 @@ def text_to_json(input_file, output_file):
     data = []
     with open(input_file, "r", encoding="utf-8") as infile:
         for line in infile:
-            print(line)
             try:
                 data.append(json.loads(line.strip()))  # Convert each line to a JSON object
             except json.JSONDecodeError:
