@@ -26,7 +26,7 @@ def decompress_zst(input_file, output_file):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
-def process_all(in_dir, int_dir, json_dir, out_dir):
+def process_all(in_dir, int_dir, json_dir, out_dir, start_date, end_date):
     for filename in os.listdir(in_dir):
         f = os.path.join(in_dir, filename)
         fout =os.path.join(int_dir, filename)
@@ -34,7 +34,7 @@ def process_all(in_dir, int_dir, json_dir, out_dir):
         f_final = os.path.join(out_dir, filename)
         decompress_zst(f, fout)
         text_to_json(fout, f_json)
-        filter_json(f_json,f_final)
+        filter_json(f_json,f_final, start_date, end_date)
 
 def text_to_json(input_file, output_file):
     data = []
@@ -51,21 +51,22 @@ def text_to_json(input_file, output_file):
     print(f"Converted '{input_file}' to '{output_file}'")
 
 #determine which posts to keep for analysis
-def keep_post(post):
+def keep_post(post, start_date, end_date):
     deleted_removed = post["author"] == "[deleted]" or post["selftext"] == "[removed]"
     score = post["score"] > 5
     text = len(post["selftext"]) > 5
-    year = True #todo - filter for timeframe
+    # UNIX timestamp (https://www.unixtimestamp.com/index.php)
+    year = post["created_utc"] and int(post["created_utc"]) >= start_date and int(post["created_utc"]) < end_date
     return not deleted_removed and score and text and year
 
-def filter_json(input_file, output_file):
+def filter_json(input_file, output_file, start_date, end_date):
     with open(input_file, "r", encoding="utf-8") as infile:
         data = json.load(infile)  # Load JSON data
 
     # If it's a list of objects, filter each one
     if isinstance(data, list):
         #filter deteled posts and posts w score < 5
-        filtered_data = [item for item in data if keep_post(item)]
+        filtered_data = [item for item in data if keep_post(item, start_date, end_date)]
         filtered_data = [{k: v for k, v in item.items() if k in fields_to_keep} for item in filtered_data]
     else:  # If it's a single object
         filtered_data = {k: v for k, v in data.items() if k in fields_to_keep}
@@ -78,7 +79,7 @@ def filter_json(input_file, output_file):
 # Example usage
 
 def main():
-    process_all("../raw_data/sample_1/raw", "../raw_data/sample_1/unzipped","../raw_data/sample_1/all_json", "../raw_data/sample_1/filtered_data")
+    process_all("../raw_data/sample_1/raw", "../raw_data/sample_1/unzipped","../raw_data/sample_1/all_json", "../raw_data/sample_1/filtered_data", 1388563200, 1641024000)
 
 if __name__ == "__main__":
     main()
